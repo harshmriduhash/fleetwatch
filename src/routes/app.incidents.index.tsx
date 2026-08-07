@@ -6,6 +6,7 @@ import { StatusDot } from "@/components/status";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAgents, useIncidents, useWorkspace } from "@/hooks/useFleet";
+import { relTime, duration } from "@/lib/time";
 
 export const Route = createFileRoute("/app/incidents/")({
   head: () => ({
@@ -23,21 +24,6 @@ const SEV: Record<string, string> = {
   medium: "border-degraded/30 bg-degraded/10 text-degraded",
   low: "border-border bg-surface text-muted-foreground",
 };
-
-export function relTime(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.round(diff / 60000);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.round(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.round(h / 24)}d ago`;
-}
-
-export function duration(from: string, to: string | null) {
-  const ms = (to ? new Date(to).getTime() : Date.now()) - new Date(from).getTime();
-  const m = Math.max(1, Math.round(ms / 60000));
-  return m < 60 ? `${m}m` : `${Math.floor(m / 60)}h ${m % 60}m`;
-}
 
 function Incidents() {
   const { data: ws } = useWorkspace();
