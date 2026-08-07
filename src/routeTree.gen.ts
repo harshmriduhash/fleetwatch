@@ -16,7 +16,7 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as AppFleetRouteImport } from './routes/app.fleet'
-import { Route as AppIncidentsRouteImport } from './routes/app.incidents'
+import { Route as AppIncidentsIndexRouteImport } from './routes/app.incidents.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,9 +53,9 @@ const AppFleetRoute = AppFleetRouteImport.update({
   path: '/fleet',
   getParentRoute: () => AppRoute,
 } as any)
-const AppIncidentsRoute = AppIncidentsRouteImport.update({
-  id: '/incidents',
-  path: '/incidents',
+const AppIncidentsIndexRoute = AppIncidentsIndexRouteImport.update({
+  id: '/incidents/',
+  path: '/incidents/',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -67,7 +67,7 @@ export interface FileRoutesByFullPath {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/app/fleet': typeof AppFleetRoute
-  '/app/incidents': typeof AppIncidentsRoute
+  '/app/incidents/': typeof AppIncidentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -77,7 +77,7 @@ export interface FileRoutesByTo {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/app/fleet': typeof AppFleetRoute
-  '/app/incidents': typeof AppIncidentsRoute
+  '/app/incidents': typeof AppIncidentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -88,7 +88,7 @@ export interface FileRoutesById {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/app/fleet': typeof AppFleetRoute
-  '/app/incidents': typeof AppIncidentsRoute
+  '/app/incidents/': typeof AppIncidentsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -100,7 +100,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/pricing'
     | '/app/fleet'
-    | '/app/incidents'
+    | '/app/incidents/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -120,7 +120,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/pricing'
     | '/app/fleet'
-    | '/app/incidents'
+    | '/app/incidents/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -183,11 +183,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFleetRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/incidents': {
-      id: '/app/incidents'
+    '/app/incidents/': {
+      id: '/app/incidents/'
       path: '/incidents'
-      fullPath: '/app/incidents'
-      preLoaderRoute: typeof AppIncidentsRouteImport
+      fullPath: '/app/incidents/'
+      preLoaderRoute: typeof AppIncidentsIndexRouteImport
       parentRoute: typeof AppRoute
     }
   }
@@ -195,12 +195,12 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppFleetRoute: typeof AppFleetRoute
-  AppIncidentsRoute: typeof AppIncidentsRoute
+  AppIncidentsIndexRoute: typeof AppIncidentsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppFleetRoute: AppFleetRoute,
-  AppIncidentsRoute: AppIncidentsRoute,
+  AppIncidentsIndexRoute: AppIncidentsIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -216,3 +216,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
