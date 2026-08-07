@@ -16,6 +16,7 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as AppFleetRouteImport } from './routes/app.fleet'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppAgentsAgentIdRouteImport } from './routes/app.agents.$agentId'
 import { Route as AppIncidentsIndexRouteImport } from './routes/app.incidents.index'
 import { Route as AppIncidentsIncidentIdRouteImport } from './routes/app.incidents.$incidentId'
@@ -55,6 +56,11 @@ const AppFleetRoute = AppFleetRouteImport.update({
   path: '/fleet',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAgentsAgentIdRoute = AppAgentsAgentIdRouteImport.update({
   id: '/agents/$agentId',
   path: '/agents/$agentId',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/app/fleet': typeof AppFleetRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/agents/$agentId': typeof AppAgentsAgentIdRoute
   '/app/incidents/$incidentId': typeof AppIncidentsIncidentIdRoute
   '/app/incidents/': typeof AppIncidentsIndexRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/app/fleet': typeof AppFleetRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/agents/$agentId': typeof AppAgentsAgentIdRoute
   '/app/incidents/$incidentId': typeof AppIncidentsIncidentIdRoute
   '/app/incidents': typeof AppIncidentsIndexRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/app/fleet': typeof AppFleetRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/agents/$agentId': typeof AppAgentsAgentIdRoute
   '/app/incidents/$incidentId': typeof AppIncidentsIncidentIdRoute
   '/app/incidents/': typeof AppIncidentsIndexRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/pricing'
     | '/app/fleet'
+    | '/app/settings'
     | '/app/agents/$agentId'
     | '/app/incidents/$incidentId'
     | '/app/incidents/'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/pricing'
     | '/app/fleet'
+    | '/app/settings'
     | '/app/agents/$agentId'
     | '/app/incidents/$incidentId'
     | '/app/incidents'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/pricing'
     | '/app/fleet'
+    | '/app/settings'
     | '/app/agents/$agentId'
     | '/app/incidents/$incidentId'
     | '/app/incidents/'
@@ -207,6 +219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFleetRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/agents/$agentId': {
       id: '/app/agents/$agentId'
       path: '/agents/$agentId'
@@ -233,6 +252,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppFleetRoute: typeof AppFleetRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppAgentsAgentIdRoute: typeof AppAgentsAgentIdRoute
   AppIncidentsIncidentIdRoute: typeof AppIncidentsIncidentIdRoute
   AppIncidentsIndexRoute: typeof AppIncidentsIndexRoute
@@ -240,6 +260,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppFleetRoute: AppFleetRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppAgentsAgentIdRoute: AppAgentsAgentIdRoute,
   AppIncidentsIncidentIdRoute: AppIncidentsIncidentIdRoute,
   AppIncidentsIndexRoute: AppIncidentsIndexRoute,

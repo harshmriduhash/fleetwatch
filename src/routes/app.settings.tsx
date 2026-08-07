@@ -47,10 +47,15 @@ function Settings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("workspace_members")
-        .select("user_id, role, profiles(email, full_name)")
+        .select("user_id, role")
         .eq("workspace_id", workspaceId!);
       if (error) throw error;
-      return data ?? [];
+      const ids = (data ?? []).map((m) => m.user_id);
+      const { data: profiles } = ids.length
+        ? await supabase.from("profiles").select("id, email, full_name").in("id", ids)
+        : { data: [] };
+      const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+      return (data ?? []).map((m) => ({ ...m, profile: byId.get(m.user_id) ?? null }));
     },
   });
 
@@ -109,12 +114,12 @@ function Settings() {
             <div key={m.user_id} className="flex items-center justify-between py-2.5">
               <div>
                 <p className="text-sm">
-                  {m.profiles?.full_name || m.profiles?.email || "Member"}
+                  {m.profile?.full_name || m.profile?.email || "Member"}
                   {m.user_id === user?.id && (
                     <span className="ml-2 text-xs text-muted-foreground">you</span>
                   )}
                 </p>
-                <p className="font-mono text-[11px] text-muted-foreground">{m.profiles?.email}</p>
+                <p className="font-mono text-[11px] text-muted-foreground">{m.profile?.email}</p>
               </div>
               <Badge variant="outline" className="font-mono text-[11px]">
                 {m.role}
