@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAgents, useIncidents, useWorkspace } from "@/hooks/useFleet";
 
-export const Route = createFileRoute("/app/incidents")({
+export const Route = createFileRoute("/app/incidents/")({
   head: () => ({
     meta: [
       { title: "Incidents — Fleetwatch" },
