@@ -95,11 +95,11 @@ function IncidentDetail() {
     qc.invalidateQueries({ queryKey: ["incidents"] });
   };
 
-  const addEvent = async (event_type: EventType, payload: Record<string, unknown> = {}) => {
+  const addEvent = async (event_type: EventType, payload: Record<string, string | undefined> = {}) => {
     const { error } = await supabase.from("incident_events").insert({
       incident_id: incidentId,
       event_type,
-      payload,
+      payload: JSON.parse(JSON.stringify(payload)),
       created_by: user?.id ?? null,
     });
     if (error) throw error;
@@ -198,7 +198,7 @@ function IncidentDetail() {
     mutationFn: async (publish: boolean) => {
       const { error } = await supabase
         .from("incidents")
-        .update({ postmortem_final: postmortem ?? incident?.postmortem_draft, published: publish })
+        .update({ postmortem_final: postmortem ?? incident?.postmortem_draft ?? null, published: publish })
         .eq("id", incidentId);
       if (error) throw error;
     },

@@ -17,6 +17,7 @@ import { Route as DocsRouteImport } from './routes/docs'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as AppFleetRouteImport } from './routes/app.fleet'
 import { Route as AppIncidentsIndexRouteImport } from './routes/app.incidents.index'
+import { Route as AppIncidentsIncidentIdRouteImport } from './routes/app.incidents.$incidentId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +59,11 @@ const AppIncidentsIndexRoute = AppIncidentsIndexRouteImport.update({
   path: '/incidents/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppIncidentsIncidentIdRoute = AppIncidentsIncidentIdRouteImport.update({
+  id: '/incidents/$incidentId',
+  path: '/incidents/$incidentId',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/app/fleet': typeof AppFleetRoute
+  '/app/incidents/$incidentId': typeof AppIncidentsIncidentIdRoute
   '/app/incidents/': typeof AppIncidentsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/app/fleet': typeof AppFleetRoute
+  '/app/incidents/$incidentId': typeof AppIncidentsIncidentIdRoute
   '/app/incidents': typeof AppIncidentsIndexRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/docs': typeof DocsRoute
   '/pricing': typeof PricingRoute
   '/app/fleet': typeof AppFleetRoute
+  '/app/incidents/$incidentId': typeof AppIncidentsIncidentIdRoute
   '/app/incidents/': typeof AppIncidentsIndexRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/pricing'
     | '/app/fleet'
+    | '/app/incidents/$incidentId'
     | '/app/incidents/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/pricing'
     | '/app/fleet'
+    | '/app/incidents/$incidentId'
     | '/app/incidents'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/docs'
     | '/pricing'
     | '/app/fleet'
+    | '/app/incidents/$incidentId'
     | '/app/incidents/'
   fileRoutesById: FileRoutesById
 }
@@ -190,16 +202,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIncidentsIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/incidents/$incidentId': {
+      id: '/app/incidents/$incidentId'
+      path: '/incidents/$incidentId'
+      fullPath: '/app/incidents/$incidentId'
+      preLoaderRoute: typeof AppIncidentsIncidentIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
   AppFleetRoute: typeof AppFleetRoute
+  AppIncidentsIncidentIdRoute: typeof AppIncidentsIncidentIdRoute
   AppIncidentsIndexRoute: typeof AppIncidentsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppFleetRoute: AppFleetRoute,
+  AppIncidentsIncidentIdRoute: AppIncidentsIncidentIdRoute,
   AppIncidentsIndexRoute: AppIncidentsIndexRoute,
 }
 
