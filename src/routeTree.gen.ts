@@ -10,33 +10,162 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BlogRouteImport } from './routes/blog'
+import { Route as DocsRouteImport } from './routes/docs'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as AppFleetRouteImport } from './routes/app.fleet'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppAgentsAgentIdRouteImport } from './routes/app.agents.$agentId'
+import { Route as AppIncidentsIndexRouteImport } from './routes/app.incidents.index'
+import { Route as AppIncidentsIncidentIdRouteImport } from './routes/app.incidents.$incidentId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppFleetRoute = AppFleetRouteImport.update({
+  id: '/fleet',
+  path: '/fleet',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAgentsAgentIdRoute = AppAgentsAgentIdRouteImport.update({
+  id: '/agents/$agentId',
+  path: '/agents/$agentId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIncidentsIndexRoute = AppIncidentsIndexRouteImport.update({
+  id: '/incidents/',
+  path: '/incidents/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIncidentsIncidentIdRoute = AppIncidentsIncidentIdRouteImport.update({
+  id: '/incidents/$incidentId',
+  path: '/incidents/$incidentId',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/blog': typeof BlogRoute
+  '/docs': typeof DocsRoute
+  '/pricing': typeof PricingRoute
+  '/app/fleet': typeof AppFleetRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/agents/$agentId': typeof AppAgentsAgentIdRoute
+  '/app/incidents/$incidentId': typeof AppIncidentsIncidentIdRoute
+  '/app/incidents/': typeof AppIncidentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/blog': typeof BlogRoute
+  '/docs': typeof DocsRoute
+  '/pricing': typeof PricingRoute
+  '/app/fleet': typeof AppFleetRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/agents/$agentId': typeof AppAgentsAgentIdRoute
+  '/app/incidents/$incidentId': typeof AppIncidentsIncidentIdRoute
+  '/app/incidents': typeof AppIncidentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/blog': typeof BlogRoute
+  '/docs': typeof DocsRoute
+  '/pricing': typeof PricingRoute
+  '/app/fleet': typeof AppFleetRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/agents/$agentId': typeof AppAgentsAgentIdRoute
+  '/app/incidents/$incidentId': typeof AppIncidentsIncidentIdRoute
+  '/app/incidents/': typeof AppIncidentsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/auth'
+    | '/blog'
+    | '/docs'
+    | '/pricing'
+    | '/app/fleet'
+    | '/app/settings'
+    | '/app/agents/$agentId'
+    | '/app/incidents/$incidentId'
+    | '/app/incidents/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/app'
+    | '/auth'
+    | '/blog'
+    | '/docs'
+    | '/pricing'
+    | '/app/fleet'
+    | '/app/settings'
+    | '/app/agents/$agentId'
+    | '/app/incidents/$incidentId'
+    | '/app/incidents'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/auth'
+    | '/blog'
+    | '/docs'
+    | '/pricing'
+    | '/app/fleet'
+    | '/app/settings'
+    | '/app/agents/$agentId'
+    | '/app/incidents/$incidentId'
+    | '/app/incidents/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  BlogRoute: typeof BlogRoute
+  DocsRoute: typeof DocsRoute
+  PricingRoute: typeof PricingRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +177,105 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/fleet': {
+      id: '/app/fleet'
+      path: '/fleet'
+      fullPath: '/app/fleet'
+      preLoaderRoute: typeof AppFleetRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/agents/$agentId': {
+      id: '/app/agents/$agentId'
+      path: '/agents/$agentId'
+      fullPath: '/app/agents/$agentId'
+      preLoaderRoute: typeof AppAgentsAgentIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/incidents/': {
+      id: '/app/incidents/'
+      path: '/incidents'
+      fullPath: '/app/incidents/'
+      preLoaderRoute: typeof AppIncidentsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/incidents/$incidentId': {
+      id: '/app/incidents/$incidentId'
+      path: '/incidents/$incidentId'
+      fullPath: '/app/incidents/$incidentId'
+      preLoaderRoute: typeof AppIncidentsIncidentIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppFleetRoute: typeof AppFleetRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppAgentsAgentIdRoute: typeof AppAgentsAgentIdRoute
+  AppIncidentsIncidentIdRoute: typeof AppIncidentsIncidentIdRoute
+  AppIncidentsIndexRoute: typeof AppIncidentsIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppFleetRoute: AppFleetRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppAgentsAgentIdRoute: AppAgentsAgentIdRoute,
+  AppIncidentsIncidentIdRoute: AppIncidentsIncidentIdRoute,
+  AppIncidentsIndexRoute: AppIncidentsIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  AuthRoute: AuthRoute,
+  BlogRoute: BlogRoute,
+  DocsRoute: DocsRoute,
+  PricingRoute: PricingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
