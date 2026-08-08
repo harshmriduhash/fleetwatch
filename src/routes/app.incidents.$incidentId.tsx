@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRole } from "@/hooks/useRole";
 import { duration, stamp } from "@/lib/time";
 import { draftPostmortem } from "@/lib/postmortem.functions";
 import type { Database } from "@/integrations/supabase/types";
@@ -103,6 +104,7 @@ function IncidentDetail() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { can } = useRole();
   const { data: incident, isLoading } = useIncident(incidentId);
   const { data: events = [] } = useTimeline(incidentId);
   const [note, setNote] = useState("");
