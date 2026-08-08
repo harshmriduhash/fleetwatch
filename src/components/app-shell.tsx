@@ -1,9 +1,12 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { LayoutGrid, Siren, Settings, LogOut, Radar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Wordmark } from "@/components/brand";
+import { NotificationBell } from "@/components/notifications";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +20,7 @@ export function AppShell() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const qc = useQueryClient();
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/auth", search: { mode: "login" } });
@@ -57,16 +61,20 @@ export function AppShell() {
               );
             })}
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <NotificationBell />
             <span className="hidden font-mono text-xs text-muted-foreground sm:inline">
               {session.user.email}
             </span>
+
             <Button
               variant="ghost"
               size="sm"
               onClick={async () => {
+                await qc.cancelQueries();
+                qc.clear();
                 await supabase.auth.signOut();
-                navigate({ to: "/" });
+                navigate({ to: "/", replace: true });
               }}
             >
               <LogOut className="size-4" />

@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRole } from "@/hooks/useRole";
 import { duration, stamp } from "@/lib/time";
 import { draftPostmortem } from "@/lib/postmortem.functions";
 import type { Database } from "@/integrations/supabase/types";
@@ -44,7 +45,27 @@ const EVENT_META: Record<EventType, { icon: typeof Siren; label: string; tone: s
   resolved: { icon: CheckCircle2, label: "Resolved", tone: "text-healthy" },
   canary_failed: { icon: Siren, label: "Canary failed", tone: "text-incident" },
   postmortem_drafted: { icon: FileText, label: "Postmortem drafted", tone: "text-primary" },
+  postmortem_submitted: {
+    icon: FileText,
+    label: "Postmortem submitted for review",
+    tone: "text-degraded",
+  },
+  postmortem_approved: { icon: CheckCircle2, label: "Postmortem approved", tone: "text-healthy" },
+  postmortem_changes_requested: {
+    icon: MessageSquarePlus,
+    label: "Changes requested on postmortem",
+    tone: "text-degraded",
+  },
+  postmortem_published: { icon: FileText, label: "Postmortem published", tone: "text-healthy" },
 };
+
+const REVIEW_LABEL: Record<string, string> = {
+  not_started: "not submitted",
+  in_review: "in review",
+  changes_requested: "changes requested",
+  approved: "approved",
+};
+
 
 function useIncident(id: string) {
   return useQuery({
@@ -83,11 +104,14 @@ function IncidentDetail() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { can } = useRole();
   const { data: incident, isLoading } = useIncident(incidentId);
   const { data: events = [] } = useTimeline(incidentId);
   const [note, setNote] = useState("");
   const [postmortem, setPostmortem] = useState<string | null>(null);
+  const [reviewNote, setReviewNote] = useState("");
   const [drafting, setDrafting] = useState(false);
+
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["incident", incidentId] });
@@ -194,11 +218,11 @@ function IncidentDetail() {
     }
   }
 
-  const savePostmortem = useMutation({
-    mutationFn: async (publish: boolean) => {
+  const saveDraft = useMutation({
+    mutationFn: async () => {
       const { error } = await supabase
         .from("incidents")
-        .update({ postmortem_final: postmortem ?? incident?.postmortem_draft ?? null, published: publish })
+        .update({ postmortem_final: postmortem ?? incident?.postmortem_draft ?? null })
         .eq("id", incidentId);
       if (error) throw error;
     },
@@ -208,6 +232,69 @@ function IncidentDetail() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const submitForReview = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("incidents")
+        .update({
+          postmortem_final: postmortem ?? incident?.postmortem_draft ?? null,
+          review_status: "in_review",
+          review_notes: null,
+        })
+        .eq("id", incidentId);
+      if (error) throw error;
+      await addEvent("postmortem_submitted", { by: user?.email });
+    },
+    onSuccess: () => {
+      toast.success("Submitted. An owner or admin will review it.");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const review = useMutation({
+    mutationFn: async (decision: "approved" | "changes_requested") => {
+      const { error } = await supabase
+        .from("incidents")
+        .update({
+          review_status: decision,
+          review_notes: decision === "changes_requested" ? reviewNote.trim() || null : null,
+        })
+        .eq("id", incidentId);
+      if (error) throw error;
+      await addEvent(
+        decision === "approved" ? "postmortem_approved" : "postmortem_changes_requested",
+        { by: user?.email, text: decision === "changes_requested" ? reviewNote : undefined },
+      );
+    },
+    onSuccess: (_d, decision) => {
+      setReviewNote("");
+      toast.success(decision === "approved" ? "Postmortem approved." : "Changes requested.");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const publish = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("incidents")
+        .update({
+          postmortem_final: postmortem ?? incident?.postmortem_draft ?? null,
+          published: true,
+        })
+        .eq("id", incidentId);
+      if (error) throw error;
+      await addEvent("postmortem_published", { by: user?.email });
+    },
+    onSuccess: () => {
+      toast.success("Postmortem published to the workspace.");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   if (isLoading) {
     return (
@@ -229,6 +316,12 @@ function IncidentDetail() {
   }
 
   const body = postmortem ?? incident.postmortem_final ?? incident.postmortem_draft ?? "";
+  const canWrite = can("postmortem:write");
+  const canReview = can("postmortem:review");
+  const canPublish = can("postmortem:publish");
+  const canRespond = can("incident:respond");
+  const locked = incident.review_status === "approved" || incident.published;
+
 
   return (
     <div>
@@ -244,12 +337,12 @@ function IncidentDetail() {
         sub={`${incident.agents?.name ?? "agent"} · open for ${duration(incident.opened_at, incident.resolved_at)} · severity ${incident.severity}`}
         action={
           <div className="flex gap-2">
-            {incident.status === "open" && (
+            {incident.status === "open" && canRespond && (
               <Button onClick={() => acknowledge.mutate()} disabled={acknowledge.isPending}>
                 Acknowledge
               </Button>
             )}
-            {incident.status !== "resolved" && (
+            {incident.status !== "resolved" && canRespond && (
               <Button
                 variant="outline"
                 onClick={() => resolve.mutate()}
@@ -319,43 +412,111 @@ function IncidentDetail() {
         </section>
 
         <section className="panel flex flex-col p-5">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm font-medium">Postmortem</h2>
-            <Button size="sm" variant="outline" onClick={onDraft} disabled={drafting}>
-              {drafting ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-              Draft with AI
-            </Button>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="font-mono text-[11px]">
+                {REVIEW_LABEL[incident.review_status] ?? incident.review_status}
+              </Badge>
+              {canWrite && (
+                <Button size="sm" variant="outline" onClick={onDraft} disabled={drafting}>
+                  {drafting ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="size-4" />
+                  )}
+                  Draft with AI
+                </Button>
+              )}
+            </div>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            The draft is summarised from the timeline above. You own the analysis — review and edit
-            before publishing.
+            The draft is summarised from the timeline above. You own the analysis — it must be
+            reviewed and approved by an owner or admin before it can be published.
           </p>
+
+          {incident.review_status === "changes_requested" && incident.review_notes && (
+            <p className="mt-3 rounded-md border border-border bg-surface px-3 py-2 text-xs text-degraded">
+              Reviewer asked for changes: {incident.review_notes}
+            </p>
+          )}
+
           <Textarea
             value={body}
             onChange={(e) => setPostmortem(e.target.value)}
-            rows={16}
+            rows={14}
+            readOnly={!canWrite || locked}
             className="mt-4 flex-1 font-mono text-xs"
             placeholder="Summary, impact, timeline, root cause, action items…"
           />
-          <div className="mt-3 flex gap-2">
-            <Button size="sm" onClick={() => savePostmortem.mutate(false)} disabled={!body}>
-              Save draft
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => savePostmortem.mutate(true)}
-              disabled={!body}
-            >
-              Publish
-            </Button>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {canWrite && !locked && (
+              <>
+                <Button size="sm" onClick={() => saveDraft.mutate()} disabled={!body || saveDraft.isPending}>
+                  Save draft
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => submitForReview.mutate()}
+                  disabled={!body || submitForReview.isPending}
+                >
+                  Submit for review
+                </Button>
+              </>
+            )}
+            {incident.review_status === "approved" && !incident.published && canPublish && (
+              <Button size="sm" onClick={() => publish.mutate()} disabled={publish.isPending}>
+                Publish
+              </Button>
+            )}
             {incident.published && (
               <Badge variant="outline" className="self-center text-[11px] text-healthy">
                 published
               </Badge>
             )}
           </div>
+
+          {incident.review_status === "in_review" && (
+            <div className="mt-4 border-t border-border pt-4">
+              {canReview ? (
+                <>
+                  <p className="text-xs font-medium">Review</p>
+                  <Textarea
+                    value={reviewNote}
+                    onChange={(e) => setReviewNote(e.target.value)}
+                    rows={2}
+                    className="mt-2 text-xs"
+                    placeholder="What needs to change before this is approved? (required to request changes)"
+                  />
+                  <div className="mt-2 flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => review.mutate("approved")}
+                      disabled={review.isPending}
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => review.mutate("changes_requested")}
+                      disabled={review.isPending || !reviewNote.trim()}
+                    >
+                      Request changes
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Waiting on an owner or admin to review this postmortem.
+                </p>
+              )}
+            </div>
+          )}
         </section>
+
       </div>
     </div>
   );

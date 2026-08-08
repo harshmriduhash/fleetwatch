@@ -44,6 +44,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmSent, setConfirmSent] = useState(false);
 
   useEffect(() => {
     if (!loading && session) navigate({ to: "/app/fleet" });
@@ -54,7 +55,7 @@ function AuthPage() {
     setBusy(true);
     try {
       if (isSignup) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -63,7 +64,12 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Workspace created. Welcome to Fleetwatch.");
+        if (data.session) {
+          toast.success("Workspace created. Welcome to Fleetwatch.");
+        } else {
+          setConfirmSent(true);
+          toast.success("Check your inbox to confirm your email, then sign in.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -110,6 +116,13 @@ function AuthPage() {
               </p>
             </div>
           </div>
+
+          {confirmSent && (
+            <p className="mt-5 rounded-md border border-border bg-surface px-3 py-2.5 text-xs text-muted-foreground">
+              Almost there — we sent a confirmation link to{" "}
+              <span className="font-mono text-foreground">{email}</span>. Confirm it, then sign in.
+            </p>
+          )}
 
           <Button
             type="button"

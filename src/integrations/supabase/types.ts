@@ -191,10 +191,15 @@ export type Database = {
           published: boolean
           resolved_at: string | null
           resolved_by: string | null
+          review_notes: string | null
+          review_status: Database["public"]["Enums"]["postmortem_review_status"]
+          reviewed_at: string | null
+          reviewed_by: string | null
           root_cause: string | null
           severity: Database["public"]["Enums"]["incident_severity"]
           sla_config_id: string | null
           status: Database["public"]["Enums"]["incident_status"]
+          submitted_for_review_at: string | null
           title: string
         }
         Insert: {
@@ -209,10 +214,15 @@ export type Database = {
           published?: boolean
           resolved_at?: string | null
           resolved_by?: string | null
+          review_notes?: string | null
+          review_status?: Database["public"]["Enums"]["postmortem_review_status"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           root_cause?: string | null
           severity?: Database["public"]["Enums"]["incident_severity"]
           sla_config_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"]
+          submitted_for_review_at?: string | null
           title: string
         }
         Update: {
@@ -227,10 +237,15 @@ export type Database = {
           published?: boolean
           resolved_at?: string | null
           resolved_by?: string | null
+          review_notes?: string | null
+          review_status?: Database["public"]["Enums"]["postmortem_review_status"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           root_cause?: string | null
           severity?: Database["public"]["Enums"]["incident_severity"]
           sla_config_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"]
+          submitted_for_review_at?: string | null
           title?: string
         }
         Relationships: [
@@ -316,6 +331,63 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          category: string
+          created_at: string
+          id: string
+          incident_id: string | null
+          link: string | null
+          read_at: string | null
+          severity: Database["public"]["Enums"]["incident_severity"] | null
+          title: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          body?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          incident_id?: string | null
+          link?: string | null
+          read_at?: string | null
+          severity?: Database["public"]["Enums"]["incident_severity"] | null
+          title: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          body?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          incident_id?: string | null
+          link?: string | null
+          read_at?: string | null
+          severity?: Database["public"]["Enums"]["incident_severity"] | null
+          title?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -545,6 +617,21 @@ export type Database = {
         Args: { _user_id: string; _workspace_id: string }
         Returns: boolean
       }
+      my_role: {
+        Args: { _workspace_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      notify_workspace: {
+        Args: {
+          _body: string
+          _incident_id: string
+          _link: string
+          _severity: Database["public"]["Enums"]["incident_severity"]
+          _title: string
+          _workspace_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       agent_status: "healthy" | "degraded" | "incident"
@@ -558,8 +645,17 @@ export type Database = {
         | "resolved"
         | "canary_failed"
         | "postmortem_drafted"
+        | "postmortem_submitted"
+        | "postmortem_approved"
+        | "postmortem_changes_requested"
+        | "postmortem_published"
       incident_severity: "low" | "medium" | "high"
       incident_status: "open" | "acknowledged" | "resolved"
+      postmortem_review_status:
+        | "not_started"
+        | "in_review"
+        | "changes_requested"
+        | "approved"
       sla_metric: "success_rate" | "p95_latency" | "error_rate"
     }
     CompositeTypes: {
@@ -699,9 +795,19 @@ export const Constants = {
         "resolved",
         "canary_failed",
         "postmortem_drafted",
+        "postmortem_submitted",
+        "postmortem_approved",
+        "postmortem_changes_requested",
+        "postmortem_published",
       ],
       incident_severity: ["low", "medium", "high"],
       incident_status: ["open", "acknowledged", "resolved"],
+      postmortem_review_status: [
+        "not_started",
+        "in_review",
+        "changes_requested",
+        "approved",
+      ],
       sla_metric: ["success_rate", "p95_latency", "error_rate"],
     },
   },
