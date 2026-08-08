@@ -44,7 +44,27 @@ const EVENT_META: Record<EventType, { icon: typeof Siren; label: string; tone: s
   resolved: { icon: CheckCircle2, label: "Resolved", tone: "text-healthy" },
   canary_failed: { icon: Siren, label: "Canary failed", tone: "text-incident" },
   postmortem_drafted: { icon: FileText, label: "Postmortem drafted", tone: "text-primary" },
+  postmortem_submitted: {
+    icon: FileText,
+    label: "Postmortem submitted for review",
+    tone: "text-degraded",
+  },
+  postmortem_approved: { icon: CheckCircle2, label: "Postmortem approved", tone: "text-healthy" },
+  postmortem_changes_requested: {
+    icon: MessageSquarePlus,
+    label: "Changes requested on postmortem",
+    tone: "text-degraded",
+  },
+  postmortem_published: { icon: FileText, label: "Postmortem published", tone: "text-healthy" },
 };
+
+const REVIEW_LABEL: Record<string, string> = {
+  not_started: "not submitted",
+  in_review: "in review",
+  changes_requested: "changes requested",
+  approved: "approved",
+};
+
 
 function useIncident(id: string) {
   return useQuery({
