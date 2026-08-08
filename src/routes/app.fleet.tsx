@@ -236,6 +236,9 @@ function AddAgentDialog({ workspaceId }: { workspaceId: string }) {
 function Fleet() {
   const { data: ws, isLoading: wsLoading } = useWorkspace();
   const workspaceId = ws?.workspace.id;
+  const { can } = useRole();
+  const canCreate = can("agent:create");
+
   const { data: agents = [], isLoading } = useAgents(workspaceId);
   const agentIds = useMemo(() => agents.map((a) => a.id), [agents]);
   const { data: incidents = [] } = useIncidents(agentIds);
