@@ -117,6 +117,13 @@ function AuthPage() {
             </div>
           </div>
 
+          {confirmSent && (
+            <p className="mt-5 rounded-md border border-border bg-surface px-3 py-2.5 text-xs text-muted-foreground">
+              Almost there — we sent a confirmation link to{" "}
+              <span className="font-mono text-foreground">{email}</span>. Confirm it, then sign in.
+            </p>
+          )}
+
           <Button
             type="button"
             variant="outline"
