@@ -214,11 +214,11 @@ function IncidentDetail() {
     }
   }
 
-  const savePostmortem = useMutation({
-    mutationFn: async (publish: boolean) => {
+  const saveDraft = useMutation({
+    mutationFn: async () => {
       const { error } = await supabase
         .from("incidents")
-        .update({ postmortem_final: postmortem ?? incident?.postmortem_draft ?? null, published: publish })
+        .update({ postmortem_final: postmortem ?? incident?.postmortem_draft ?? null })
         .eq("id", incidentId);
       if (error) throw error;
     },
@@ -228,6 +228,69 @@ function IncidentDetail() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const submitForReview = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("incidents")
+        .update({
+          postmortem_final: postmortem ?? incident?.postmortem_draft ?? null,
+          review_status: "in_review",
+          review_notes: null,
+        })
+        .eq("id", incidentId);
+      if (error) throw error;
+      await addEvent("postmortem_submitted", { by: user?.email });
+    },
+    onSuccess: () => {
+      toast.success("Submitted. An owner or admin will review it.");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const review = useMutation({
+    mutationFn: async (decision: "approved" | "changes_requested") => {
+      const { error } = await supabase
+        .from("incidents")
+        .update({
+          review_status: decision,
+          review_notes: decision === "changes_requested" ? reviewNote.trim() || null : null,
+        })
+        .eq("id", incidentId);
+      if (error) throw error;
+      await addEvent(
+        decision === "approved" ? "postmortem_approved" : "postmortem_changes_requested",
+        { by: user?.email, text: decision === "changes_requested" ? reviewNote : undefined },
+      );
+    },
+    onSuccess: (_d, decision) => {
+      setReviewNote("");
+      toast.success(decision === "approved" ? "Postmortem approved." : "Changes requested.");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const publish = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("incidents")
+        .update({
+          postmortem_final: postmortem ?? incident?.postmortem_draft ?? null,
+          published: true,
+        })
+        .eq("id", incidentId);
+      if (error) throw error;
+      await addEvent("postmortem_published", { by: user?.email });
+    },
+    onSuccess: () => {
+      toast.success("Postmortem published to the workspace.");
+      refresh();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   if (isLoading) {
     return (
