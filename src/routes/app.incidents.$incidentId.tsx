@@ -404,43 +404,111 @@ function IncidentDetail() {
         </section>
 
         <section className="panel flex flex-col p-5">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm font-medium">Postmortem</h2>
-            <Button size="sm" variant="outline" onClick={onDraft} disabled={drafting}>
-              {drafting ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-              Draft with AI
-            </Button>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="font-mono text-[11px]">
+                {REVIEW_LABEL[incident.review_status] ?? incident.review_status}
+              </Badge>
+              {canWrite && (
+                <Button size="sm" variant="outline" onClick={onDraft} disabled={drafting}>
+                  {drafting ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="size-4" />
+                  )}
+                  Draft with AI
+                </Button>
+              )}
+            </div>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            The draft is summarised from the timeline above. You own the analysis — review and edit
-            before publishing.
+            The draft is summarised from the timeline above. You own the analysis — it must be
+            reviewed and approved by an owner or admin before it can be published.
           </p>
+
+          {incident.review_status === "changes_requested" && incident.review_notes && (
+            <p className="mt-3 rounded-md border border-border bg-surface px-3 py-2 text-xs text-degraded">
+              Reviewer asked for changes: {incident.review_notes}
+            </p>
+          )}
+
           <Textarea
             value={body}
             onChange={(e) => setPostmortem(e.target.value)}
-            rows={16}
+            rows={14}
+            readOnly={!canWrite || locked}
             className="mt-4 flex-1 font-mono text-xs"
             placeholder="Summary, impact, timeline, root cause, action items…"
           />
-          <div className="mt-3 flex gap-2">
-            <Button size="sm" onClick={() => savePostmortem.mutate(false)} disabled={!body}>
-              Save draft
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => savePostmortem.mutate(true)}
-              disabled={!body}
-            >
-              Publish
-            </Button>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {canWrite && !locked && (
+              <>
+                <Button size="sm" onClick={() => saveDraft.mutate()} disabled={!body || saveDraft.isPending}>
+                  Save draft
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => submitForReview.mutate()}
+                  disabled={!body || submitForReview.isPending}
+                >
+                  Submit for review
+                </Button>
+              </>
+            )}
+            {incident.review_status === "approved" && !incident.published && canPublish && (
+              <Button size="sm" onClick={() => publish.mutate()} disabled={publish.isPending}>
+                Publish
+              </Button>
+            )}
             {incident.published && (
               <Badge variant="outline" className="self-center text-[11px] text-healthy">
                 published
               </Badge>
             )}
           </div>
+
+          {incident.review_status === "in_review" && (
+            <div className="mt-4 border-t border-border pt-4">
+              {canReview ? (
+                <>
+                  <p className="text-xs font-medium">Review</p>
+                  <Textarea
+                    value={reviewNote}
+                    onChange={(e) => setReviewNote(e.target.value)}
+                    rows={2}
+                    className="mt-2 text-xs"
+                    placeholder="What needs to change before this is approved? (required to request changes)"
+                  />
+                  <div className="mt-2 flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => review.mutate("approved")}
+                      disabled={review.isPending}
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => review.mutate("changes_requested")}
+                      disabled={review.isPending || !reviewNote.trim()}
+                    >
+                      Request changes
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Waiting on an owner or admin to review this postmortem.
+                </p>
+              )}
+            </div>
+          )}
         </section>
+
       </div>
     </div>
   );
