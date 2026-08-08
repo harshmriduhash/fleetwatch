@@ -107,34 +107,44 @@ function Settings() {
     <div className="max-w-3xl">
       <PageHeader title="Settings" sub={ws?.workspace.name ?? "Workspace"} />
 
-      <section className="panel mb-4 p-5">
-        <h2 className="text-sm font-medium">Ingest key</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Send this in the <span className="font-mono">x-fleetwatch-key</span> header from your OTel
-          exporter. Treat it like a production credential.
-        </p>
-        <div className="mt-4 flex items-center gap-2">
-          <code className="flex-1 truncate rounded-md border border-border bg-background px-3 py-2 font-mono text-xs">
-            {key ? (reveal ? key : `${key.slice(0, 8)}${"•".repeat(24)}`) : "No key yet"}
-          </code>
-          <Button variant="outline" size="sm" onClick={() => setReveal((v) => !v)}>
-            {reveal ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-            <span className="sr-only">{reveal ? "Hide key" : "Reveal key"}</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!key}
-            onClick={() => {
-              navigator.clipboard.writeText(key);
-              toast.success("Ingest key copied.");
-            }}
-          >
-            <Copy className="size-4" />
-            <span className="sr-only">Copy key</span>
-          </Button>
-        </div>
-      </section>
+      {canViewKeys ? (
+        <section className="panel mb-4 p-5">
+          <h2 className="text-sm font-medium">Ingest key</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Send this in the <span className="font-mono">x-fleetwatch-key</span> header from your
+            OTel exporter. Treat it like a production credential.
+          </p>
+          <div className="mt-4 flex items-center gap-2">
+            <code className="flex-1 truncate rounded-md border border-border bg-background px-3 py-2 font-mono text-xs">
+              {key ? (reveal ? key : `${key.slice(0, 8)}${"•".repeat(24)}`) : "No key yet"}
+            </code>
+            <Button variant="outline" size="sm" onClick={() => setReveal((v) => !v)}>
+              {reveal ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              <span className="sr-only">{reveal ? "Hide key" : "Reveal key"}</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!key}
+              onClick={() => {
+                navigator.clipboard.writeText(key);
+                toast.success("Ingest key copied.");
+              }}
+            >
+              <Copy className="size-4" />
+              <span className="sr-only">Copy key</span>
+            </Button>
+          </div>
+        </section>
+      ) : (
+        <section className="panel mb-4 p-5">
+          <h2 className="text-sm font-medium">Ingest key</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Ingest keys are visible to workspace owners and admins only.
+          </p>
+        </section>
+      )}
+
 
       <section className="panel mb-4 p-5">
         <h2 className="text-sm font-medium">Team</h2>
