@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/app-shell";
 import { StatusPill, StatusDot, type HealthState } from "@/components/status";
 import { Button } from "@/components/ui/button";
+import { useRole } from "@/hooks/useRole";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -279,7 +280,7 @@ function Fleet() {
             ? "Loading workspace…"
             : `${agents.length} agent${agents.length === 1 ? "" : "s"} monitored in ${ws?.workspace.name ?? "your workspace"}`
         }
-        action={workspaceId ? <AddAgentDialog workspaceId={workspaceId} /> : null}
+        action={workspaceId && canCreate ? <AddAgentDialog workspaceId={workspaceId} /> : null}
       />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
@@ -315,7 +316,7 @@ function Fleet() {
             SLAs start watching it right away.
           </p>
           <div className="mt-2 flex gap-2">
-            {workspaceId && <AddAgentDialog workspaceId={workspaceId} />}
+            {workspaceId && canCreate && <AddAgentDialog workspaceId={workspaceId} />}
             <Button asChild variant="outline" size="sm">
               <Link to="/docs">Integration guide</Link>
             </Button>
