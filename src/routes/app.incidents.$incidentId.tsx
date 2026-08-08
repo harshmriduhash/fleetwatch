@@ -107,7 +107,9 @@ function IncidentDetail() {
   const { data: events = [] } = useTimeline(incidentId);
   const [note, setNote] = useState("");
   const [postmortem, setPostmortem] = useState<string | null>(null);
+  const [reviewNote, setReviewNote] = useState("");
   const [drafting, setDrafting] = useState(false);
+
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["incident", incidentId] });
