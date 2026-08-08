@@ -57,10 +57,12 @@ export function AppShell() {
               );
             })}
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <NotificationBell />
             <span className="hidden font-mono text-xs text-muted-foreground sm:inline">
               {session.user.email}
             </span>
+
             <Button
               variant="ghost"
               size="sm"
