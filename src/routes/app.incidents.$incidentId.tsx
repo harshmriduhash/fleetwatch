@@ -314,6 +314,12 @@ function IncidentDetail() {
   }
 
   const body = postmortem ?? incident.postmortem_final ?? incident.postmortem_draft ?? "";
+  const canWrite = can("postmortem:write");
+  const canReview = can("postmortem:review");
+  const canPublish = can("postmortem:publish");
+  const canRespond = can("incident:respond");
+  const locked = incident.review_status === "approved" || incident.published;
+
 
   return (
     <div>
