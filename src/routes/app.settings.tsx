@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Copy, Eye, EyeOff } from "lucide-react";
@@ -9,6 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useFleet";
+import { useRole, type Role } from "@/hooks/useRole";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/app/settings")({
   head: () => ({
@@ -24,12 +32,16 @@ export const Route = createFileRoute("/app/settings")({
 function Settings() {
   const { user } = useAuth();
   const { data: ws } = useWorkspace();
+  const { can } = useRole();
+  const qc = useQueryClient();
+  const canManageMembers = can("members:manage");
+  const canViewKeys = can("keys:view");
   const workspaceId = ws?.workspace.id;
   const [reveal, setReveal] = useState(false);
 
   const { data: keys = [] } = useQuery({
     queryKey: ["ingest-keys", workspaceId],
-    enabled: !!workspaceId,
+    enabled: !!workspaceId && canViewKeys,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ingest_keys")
@@ -70,6 +82,23 @@ function Settings() {
       if (error) throw error;
       return data ?? [];
     },
+  });
+
+  const changeRole = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: Role }) => {
+      const { error } = await supabase
+        .from("workspace_members")
+        .update({ role })
+        .eq("workspace_id", workspaceId!)
+        .eq("user_id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Role updated.");
+      qc.invalidateQueries({ queryKey: ["members", workspaceId] });
+      qc.invalidateQueries({ queryKey: ["workspace"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const key = keys[0]?.token ?? "";
