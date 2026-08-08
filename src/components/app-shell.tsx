@@ -4,6 +4,8 @@ import { LayoutGrid, Siren, Settings, LogOut, Radar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Wordmark } from "@/components/brand";
+import { NotificationBell } from "@/components/notifications";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
