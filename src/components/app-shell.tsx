@@ -1,4 +1,5 @@
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { LayoutGrid, Siren, Settings, LogOut, Radar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,6 +20,7 @@ export function AppShell() {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const qc = useQueryClient();
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/auth", search: { mode: "login" } });
@@ -69,8 +71,10 @@ export function AppShell() {
               variant="ghost"
               size="sm"
               onClick={async () => {
+                await qc.cancelQueries();
+                qc.clear();
                 await supabase.auth.signOut();
-                navigate({ to: "/" });
+                navigate({ to: "/", replace: true });
               }}
             >
               <LogOut className="size-4" />
