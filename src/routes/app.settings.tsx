@@ -109,25 +109,50 @@ function Settings() {
 
       <section className="panel mb-4 p-5">
         <h2 className="text-sm font-medium">Team</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Owners and admins manage agents, SLAs, canaries, ingest keys and approve postmortems.
+          Members respond to incidents and write postmortems. A workspace always keeps one owner.
+        </p>
         <div className="mt-4 divide-y divide-border">
           {members.map((m) => (
-            <div key={m.user_id} className="flex items-center justify-between py-2.5">
-              <div>
+            <div key={m.user_id} className="flex items-center justify-between gap-3 py-2.5">
+              <div className="min-w-0">
                 <p className="text-sm">
                   {m.profile?.full_name || m.profile?.email || "Member"}
                   {m.user_id === user?.id && (
                     <span className="ml-2 text-xs text-muted-foreground">you</span>
                   )}
                 </p>
-                <p className="font-mono text-[11px] text-muted-foreground">{m.profile?.email}</p>
+                <p className="truncate font-mono text-[11px] text-muted-foreground">
+                  {m.profile?.email}
+                </p>
               </div>
-              <Badge variant="outline" className="font-mono text-[11px]">
-                {m.role}
-              </Badge>
+              {canManageMembers ? (
+                <Select
+                  value={m.role}
+                  onValueChange={(role) =>
+                    changeRole.mutate({ userId: m.user_id, role: role as Role })
+                  }
+                >
+                  <SelectTrigger className="w-32" aria-label={`Role for ${m.profile?.email ?? "member"}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owner">owner</SelectItem>
+                    <SelectItem value="admin">admin</SelectItem>
+                    <SelectItem value="member">member</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Badge variant="outline" className="font-mono text-[11px]">
+                  {m.role}
+                </Badge>
+              )}
             </div>
           ))}
         </div>
       </section>
+
 
       <section className="panel p-5">
         <h2 className="text-sm font-medium">On-call</h2>
