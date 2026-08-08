@@ -337,12 +337,12 @@ function IncidentDetail() {
         sub={`${incident.agents?.name ?? "agent"} · open for ${duration(incident.opened_at, incident.resolved_at)} · severity ${incident.severity}`}
         action={
           <div className="flex gap-2">
-            {incident.status === "open" && (
+            {incident.status === "open" && canRespond && (
               <Button onClick={() => acknowledge.mutate()} disabled={acknowledge.isPending}>
                 Acknowledge
               </Button>
             )}
-            {incident.status !== "resolved" && (
+            {incident.status !== "resolved" && canRespond && (
               <Button
                 variant="outline"
                 onClick={() => resolve.mutate()}
